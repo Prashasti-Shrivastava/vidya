@@ -37,7 +37,7 @@ const Todo = () => {
 
   return (
     <div>
-      <h1 className='m-8 p-4 text-4xl font-bold text-center '>Your personalised <span className='text-purple-500'>TO-DO</span> List</h1>
+      <h1 className='m-8 p-4 text-4xl font-bold text-center '>Your personalised <span className='text-green-700'>TO-DO</span> List</h1>
 
       <form onSubmit={submitHandler}>
         <input type="text"
@@ -60,7 +60,7 @@ const Todo = () => {
         >
         </input>
         
-        <button className='bg-purple-500 text-white p-5 m-5 rounded-lg text-2xl'>Add Task</button>
+        <button className='bg-green-700 text-white p-5 m-5 rounded-lg text-2xl'>Add Task</button>
       </form>
       <div className='flex '>
         <ul>{renderTask}</ul>
