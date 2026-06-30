@@ -36,13 +36,13 @@ const Todo = () => {
     }
 
   return (
-    <div>
+    <div className='shadow-sm mb-12'>
       <h1 className='m-8 p-4 text-4xl font-bold text-center '>Your personalised <span className='text-green-700'>TO-DO</span> List</h1>
 
-      <form onSubmit={submitHandler}>
+      <form onSubmit={submitHandler} className='flex flex-col max-w-[600px] mx-auto p-6 border-2 border-zinc-300 rounded-xl bg-white '>
         <input type="text"
         placeholder='Add a new task'
-        className='text-2xl p-5 m-5 border-zinc-700 border-2 rounded-lg'
+        className='text-2xl p-5 m-5 border-zinc-700 border-2 rounded-lg min-w-[350px]'
         value={task}
         onChange={(e)=>{
             setTask(e.target.value);
@@ -52,7 +52,7 @@ const Todo = () => {
       
         <input type="text"
         placeholder='Add description for the task'
-        className='text-2xl p-5 m-5 border-zinc-700 border-2 rounded-lg '
+        className='text-2xl p-5 m-5 border-zinc-700 border-2 rounded-lg min-w-[350px] h-40px'
         value={des}
         onChange={(e)=>{
             setDes(e.target.value);
@@ -60,11 +60,13 @@ const Todo = () => {
         >
         </input>
         
-        <button className='bg-green-700 text-white p-5 m-5 rounded-lg text-2xl'>Add Task</button>
+        <button className='bg-green-700 text-white p-5 m-5 rounded-lg text-2xl min-w-[350px]'>Add Task</button>
       </form>
-      <div className='flex '>
-        <ul>{renderTask}</ul>
-      </div>
+        <div className="w-full px-8 my-8">
+        <ul className="flex flex-row flex-wrap flex-start gap-6 w-full">
+            {renderTask}
+        </ul>
+        </div>     
     </div>
   )
 }
