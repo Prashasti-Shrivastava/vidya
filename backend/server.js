@@ -2,25 +2,28 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();      //to load env variables from .env file into process.env
 const db = require('./config/db'); // Import our database connection pool
+const authRoutes = require('./routes/authRoutes');
+const cookieParser = require('cookie-parser'); // Import the cookie-parser middleware
 
 const app = express();
 
 // Middlewares
-app.use(cors());    // Allows cross-origin resource sharing --- if frontend and backend are hosted on different domains or ports, this is necessary for the frontend to communicate with the backend
+// app.use(cors({
+//     origin: 'http://localhost:5173', // Your React development URL (e.g., Vite defaults to 5173)
+//     credentials: true // Crucial! Tells CORS to allow cookies to travel over the wire
+// }));
+app.use(cors());
+
+
+
+//app.use(cors());    // Allows cross-origin resource sharing --- if frontend and backend are hosted on different domains or ports, this is necessary for the frontend to communicate with the backend
 app.use(express.json());  // Parses incoming JSON payloads
+app.use(cookieParser()); //  Enable cookie parsing globally
 
-// Test the MySQL Database Connection on server startup
-async function testDbConnection() {
-    try {
-        // Run a simple query to see if it responds
-        const [rows] = await db.execute('SELECT 1 + 1 AS result');
-        console.log(' Connected to MySQL Database successfully!');
-    } catch (error) {
-        console.error(' Database connection failed:', error.message);
-    }
-}
 
-testDbConnection();
+app.use('/api/auth', authRoutes);
+
+//testDbConnection();
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
