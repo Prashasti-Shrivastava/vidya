@@ -2,6 +2,35 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const protect = (req, res, next) => {
+    // 1. Grab the token straight out of our parsed cookies
+    const token = req.cookies.token;
+
+    // 2. If the cookie doesn't exist, block the user immediately
+    if (!token) {
+        return res.status(401).json({ message: "No token provided, authentication denied." });
+    }
+
+    try {
+        // 3. Verify the token 
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // 4. Attach the decoded object to req.user for down-stream routes
+        req.user = decoded; 
+        
+        next();
+    } catch (error) {
+        console.error("Token invalid:", error.message);
+        return res.status(401).json({ message: "Token is invalid or expired." });
+    }
+};
+
+module.exports = protect;
+
+
+/*const jwt = require('jsonwebtoken');
+require('dotenv').config();
+
+const protect = (req, res, next) => {
     //  Grab the Authorization header from the incoming request
     const authHeader = req.header('Authorization');
 
@@ -29,7 +58,7 @@ const protect = (req, res, next) => {
     }
 };
 
-module.exports = protect;
+module.exports = protect;*/
 
 
 //we hid id and role in payload of the jwt token . When jwt.verify() successfully decrypts it, it returns that payload:

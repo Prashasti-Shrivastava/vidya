@@ -11,8 +11,18 @@ const generateToken = (id, role) => {
     });
 };
 
+
+// Reusable configuration object for secure cookies
+const cookieOptions = {
+    httpOnly: true, // Blocks XSS attacks completely
+    secure: process.env.NODE_ENV === 'production', // true if deployed on HTTPS, false on localhost
+    //sameSite: 'strict', // Blocks CSRF attacks
+    sameSite: 'lax', // Allows the cookie to travel between port 5173 and 5000 safely! diff domains for frontend and backend
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days in milliseconds
+};
+
 const authController = {
-    register: async (req, res) => {
+   register: async (req, res) => {
         const { name, userName, email, pass } = req.body;
 
         if (!name || !userName || !email || !pass) {
@@ -29,24 +39,21 @@ const authController = {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(pass, salt);
 
-            // Save user to MySQL
             const result = await User.create(name, userName, email, hashedPassword);
-            const newUserId = result.insertId; // Grab the newly created auto-incremented ID
+            const newUserId = result.insertId;
 
-            // 2. Generate a token immediately for a seamless signup experience
             const token = generateToken(newUserId, 'student');
+
+            // Set the cookie automatically for registration
+            res.cookie('token', token, cookieOptions);
 
             return res.status(201).json({ 
                 message: "User registered successfully!",
-                token, // Send token to frontend
-                user: { id: newUserId,
-                        name,
-                        username: userName,
-                        role: 'student' }
+                user: { id: newUserId, name, username: userName, role: 'student' }
             });
 
         } catch (error) {
-            console.error("Registration Error:", error);
+            console.error(error);
             return res.status(500).json({ message: "Internal server error." });
         }
     },
@@ -65,26 +72,98 @@ const authController = {
             const isMatch = await bcrypt.compare(pass, user.password);
             if (!isMatch) return res.status(401).json({ message: "Invalid email or password." });
 
-            // 3. Generate token with user's actual database ID and Role
             const token = generateToken(user.id, user.role);
 
-            // Send everything React needs to establish the session
+            // Set the cookie automatically for login
+            res.cookie('token', token, cookieOptions);
+
             return res.status(200).json({
                 message: "Login successful!",
-                token, // Send token to frontend
-                user: {
-                    id: user.id,
-                    name: user.name,
-                    username: user.username,
-                    role: user.role
-                }
+                user: { id: user.id, name: user.name, username: user.username, role: user.role }
             });
 
         } catch (error) {
-            console.error("Login Error:", error);
+            console.error(error);
             return res.status(500).json({ message: "Internal server error." });
         }
-    }
+    },
+
+    logout: async (req, res) => {
+        try {
+            // 3. Clear the cookie completely on logout
+            res.clearCookie('token', cookieOptions);
+            return res.status(200).json({ message: "Logged out successfully." });
+        } catch (error) {
+            return res.status(500).json({ message: "Internal server error." });
+        }
+    },
+
+    //  UPDATE PROFILE (Name & Username change)
+    updateProfile: async (req, res) => {
+        const { name, userName } = req.body;
+        const userId = req.user.id; // Extracted safely by auth middleware!
+
+        if (!name || !userName) {
+            return res.status(400).json({ message: "Name and username are required." });
+        }
+
+        try {
+            // Check if the new username is already taken by SOMEONE ELSE
+            const usernameExists = await User.checkExistsByUsername(userName);
+            
+            // If it exists, make sure it doesn't belong to the current user making the request
+            if (usernameExists && usernameExists.id !== userId) {
+                return res.status(400).json({ message: "Username is already taken by another user." });
+            }
+
+            // Update the record
+            await User.updateProfile(userId, name, userName);
+
+            return res.status(200).json({
+                message: "Profile updated successfully!",
+                user: { name, username: userName }
+            });
+        } catch (error) {
+            console.error("Update Profile Error:", error);
+            return res.status(500).json({ message: "Internal server error." });
+        }
+    },
+
+    // UPDATE PASSWORD (Secure verification check)
+    updatePassword: async (req, res) => {
+        const { oldPass, newPass } = req.body;
+        const userId = req.user.id;
+
+        if (!oldPass || !newPass) {
+            return res.status(400).json({ message: "Both old and new passwords are required." });
+        }
+
+        try {
+            // Fetch the user's current hashed password from the DB
+            const user = await User.findPasswordById(userId);
+            if (!user) {
+                return res.status(404).json({ message: "User not found." });
+            }
+
+            // Verify if the old password provided matches the database hash
+            const isMatch = await bcrypt.compare(oldPass, user.password);
+            if (!isMatch) {
+                return res.status(401).json({ message: "Incorrect old password." });
+            }
+
+            // Hash the brand-new password securely
+            const salt = await bcrypt.genSalt(10);
+            const hashedNewPassword = await bcrypt.hash(newPass, salt);
+
+            // Update the password column in MySQL
+            await User.updatePassword(userId, hashedNewPassword);
+
+            return res.status(200).json({ message: "Password updated successfully!" });
+        } catch (error) {
+            console.error("Update Password Error:", error);
+            return res.status(500).json({ message: "Internal server error." });
+        }
+    },
 };
 
 module.exports = authController;
