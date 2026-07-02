@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();      //to load env variables from .env file into process.env
 const db = require('./config/db'); // Import our database connection pool
 const authRoutes = require('./routes/authRoutes');
+const taskRoutesAdmin = require('./routes/taskRoutes.admin');
 const cookieParser = require('cookie-parser'); // Import the cookie-parser middleware
 
 const app = express();
@@ -22,7 +23,7 @@ app.use(cookieParser()); //  Enable cookie parsing globally
 
 
 app.use('/api/auth', authRoutes);
-
+app.use('/api/admin/tasks', taskRoutesAdmin);
 //testDbConnection();
 
 const PORT = process.env.PORT || 5000;
