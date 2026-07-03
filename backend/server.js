@@ -4,6 +4,7 @@ require('dotenv').config();      //to load env variables from .env file into pro
 const db = require('./config/db'); // Import our database connection pool
 const authRoutes = require('./routes/authRoutes');
 const taskRoutesAdmin = require('./routes/taskRoutes.admin');
+const taskStudentRoutes = require('./routes/taskRoutes.student');
 const cookieParser = require('cookie-parser'); // Import the cookie-parser middleware
 
 const app = express();
@@ -24,9 +25,10 @@ app.use(cookieParser()); //  Enable cookie parsing globally
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin/tasks', taskRoutesAdmin);
+app.use('/api/student', taskStudentRoutes);
 //testDbConnection();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
