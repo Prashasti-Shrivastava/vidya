@@ -3,6 +3,7 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const protect = require('../middlewares/authMiddleware'); // Our guard
 
+
 // Public Routes
 router.post('/register', authController.register);
 router.post('/login', authController.login);

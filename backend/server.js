@@ -6,6 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const taskRoutesAdmin = require('./routes/taskRoutes.admin');
 const taskStudentRoutes = require('./routes/taskRoutes.student');
 const cookieParser = require('cookie-parser'); // Import the cookie-parser middleware
+const testRoute = require('./routes/testRoute');
 
 const app = express();
 
@@ -27,6 +28,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin/tasks', taskRoutesAdmin);
 app.use('/api/student', taskStudentRoutes);
 //testDbConnection();
+app.get('/hello',(req,res)=>{
+    res.send('Hello from backend!');
+});
+app.use('/route',testRoute);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {

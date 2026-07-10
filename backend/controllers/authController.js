@@ -7,7 +7,7 @@ require('dotenv').config();
 const generateToken = (id, role) => {
     //  embed the user's ID and role inside the token payload
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
-        expiresIn: '30d' // Token remains valid for 30 days
+        expiresIn: '15d' // Token remains valid for 15 days
     });
 };
 
@@ -18,7 +18,8 @@ const cookieOptions = {
     secure: process.env.NODE_ENV === 'production', // true if deployed on HTTPS, false on localhost
     //sameSite: 'strict', // Blocks CSRF attacks
     sameSite: 'lax', // Allows the cookie to travel between port 5173 and 5000 safely! diff domains for frontend and backend
-    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days in milliseconds
+    maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days in milliseconds
+    path: '/',
 };
 
 const authController = {
@@ -37,12 +38,22 @@ const authController = {
             if (usernameExists) return res.status(400).json({ message: "Username is already taken." });
 
             const salt = await bcrypt.genSalt(10);
+             if(!salt) res.send("salt not generated");
             const hashedPassword = await bcrypt.hash(pass, salt);
+            if(!hashedPassword){
+                res.send("password not hashed");
+            }
+           // res.send("password hashed");
+
+            
 
             const result = await User.create(name, userName, email, hashedPassword);
+           // res.send(result);
             const newUserId = result.insertId;
+           // res.send(newUserId);
 
             const token = generateToken(newUserId, 'student');
+           // res.send(token);
 
             // Set the cookie automatically for registration
             res.cookie('token', token, cookieOptions);
@@ -91,7 +102,7 @@ const authController = {
     logout: async (req, res) => {
         try {
             // 3. Clear the cookie completely on logout
-            res.clearCookie('token', cookieOptions);
+           res.clearCookie('token', { path: '/' });
             return res.status(200).json({ message: "Logged out successfully." });
         } catch (error) {
             return res.status(500).json({ message: "Internal server error." });
