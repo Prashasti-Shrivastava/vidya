@@ -110,7 +110,32 @@ const taskAdminController = {
             console.error("Grade Submission Error:", error);
             return res.status(500).json({ message: "Internal server error." });
         }
+    },
+
+    //  Fetch pending grading submissions for a specific admin (teacher) yet to review
+getPendingSubmissions: async (req, res) => {
+    // 1. Role verification
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admins only." });
     }
+
+    const adminId = req.user.id; // Extracted securely from cookie middleware
+
+    try {
+        // 2. Fetch the pending data
+        const pendingList = await Task.getPendingGrading(adminId);
+
+        // 3. Return the payload along with a count
+        return res.status(200).json({
+            message: "Pending submissions fetched successfully.",
+            count: pendingList.length,
+            submissions: pendingList
+        });
+    } catch (error) {
+        console.error("Fetch Pending Submissions Error:", error);
+        return res.status(500).json({ message: "Internal server error." });
+    }
+}
 };
 
 module.exports = taskAdminController;

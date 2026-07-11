@@ -6,5 +6,6 @@ const protect = require('../middlewares/authMiddleware');
 router.post('/create', protect, taskAdminController.createTask);
 router.post('/assign', protect, taskAdminController.assignTask);
 router.patch('/grade-submission', protect, taskAdminController.gradeSubmission);
+router.get('/pending-submissions', protect, taskAdminController.getPendingSubmissions);
 
 module.exports = router;

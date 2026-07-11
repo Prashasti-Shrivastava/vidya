@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const leaderboardController = require('../controllers/leaderboardController');
-const protect = require('../middleware/protect'); // Your cookie auth middleware
 
-// Both routes are protected by auth, but open to any logged-in role
-router.get('/task', protect, leaderboardController.getTaskTopThree);
-router.get('/overall', protect, leaderboardController.getOverallTopThree);
+// Middlewares
+const protect = require('../middleware/protect'); // Parses cookie, populates req.user
+const checkGroupAccess = require('../middleware/checkGroupAccess'); // Enforces privacy bounds
+
+// Apply them sequentially
+router.get('/task', protect, checkGroupAccess, leaderboardController.getTaskTopThree);
+router.get('/overall', protect, checkGroupAccess, leaderboardController.getOverallTopThree);
 
 module.exports = router;
