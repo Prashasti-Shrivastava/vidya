@@ -62,3 +62,13 @@ CREATE TABLE student_submissions (
     UNIQUE KEY unique_student_task (student_id, task_id)
 );
 --until the task is pending submitted at is null
+
+-- Run these ALTER commands on your existing database:
+
+-- 1. Add max_score to tasks table (allowing decimal scores up to 999.99)
+ALTER TABLE tasks 
+ADD COLUMN max_score DECIMAL(5, 2) NOT NULL DEFAULT 100.00;
+
+-- 2. Add score to student_submissions table (nullable by default since pending tasks don't have scores yet)
+ALTER TABLE student_submissions 
+ADD COLUMN score DECIMAL(5, 2) NULL DEFAULT NULL;
