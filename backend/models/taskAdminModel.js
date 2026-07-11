@@ -44,7 +44,29 @@ const Task = {
             [score, submissionId]
         );
         return result;
-    }
+    },
+
+// pending grading submissions for a specific admin (teacher) to review
+getPendingGrading: async (adminId) => {
+    const query = `
+        SELECT 
+            s.id AS submission_id, 
+            t.id AS task_id,
+            t.title AS task_title, 
+            u.name AS student_name, 
+            s.submitted_at 
+        FROM student_submissions s
+        JOIN tasks t ON s.task_id = t.id
+        JOIN users u ON s.student_id = u.id
+        WHERE t.created_by = ? 
+          AND s.status = 'submitted' 
+          AND s.score IS NULL
+        ORDER BY s.submitted_at ASC; -- Oldest submissions first so admins grade in order
+    `;
+
+    const [rows] = await db.execute(query, [adminId]);
+    return rows;
+}
 };
 
 module.exports = Task;
